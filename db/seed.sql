@@ -20,23 +20,23 @@ VALUES
     ('Legal Team Lead', 250000, 4),
     ('Lawyer', 190000, 4);
 
---Create insert for employee
+
 INSERT INTO employee 
     (first_name, last_name, role_id, manager_id)
 VALUES
-    (Sally, Struthers, 4, 1),
-    (Yao, Ming, 5, NULL),
-    (Harry, Potter, 2, 2),
-    (Davie, Crocket, 1, 2),
-    (Comrade, Vodka, 7, 3),
-    (Orange, Julius, 8, 3),
-    (Frank, Frick, 8, NULL),
-    (Jasmine, Rice, 6, 4),
-    (Krusty, Krab, 1, 2),
-    (Jimmie, Eat-World, 1, NULL),
-    (Lebrons, Hairline, 3, NULL),
-    (Imma, Stupid, 4, 1),
-    (Look, Overthere, 5, 4);
+    ('Sally', 'Struthers', 4, 11),
+    ('Yao', 'Ming', 5, NULL),
+    ('Harry', 'Potter', 2, 10),
+    ('Davie', 'Crocket', 1, 10),
+    ('Comrade', 'Vodka', 7, 7),
+    ('Orange', 'Julius', 8, 7),
+    ('Frank', 'Frick', 8, NULL),
+    ('Jasmine', 'Rice', 6, 2),
+    ('Krusty', 'Krab', 1, 10),
+    ('Jimmie', 'Eat-World', 1, NULL),
+    ('Lebrons', 'Hairline', 3, NULL),
+    ('Imma', 'Stupid', 4, 11),
+    ('Look', 'Overthere', 5, 2);
 
 
 

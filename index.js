@@ -29,10 +29,10 @@ async function loadMainPrompts() {
         name: "View All Employees",
         value: "VIEW_EMPLOYEES"
       },
-      {
-        name: "View Employees by Departments",
-        value: "VIEW_EMPLOYEES_DEPARTMENTS"
-      },
+      // {
+      //   name: "View Employees by Departments",
+      //   value: "VIEW_EMPLOYEES_DEPARTMENTS"
+      // },
       {
         name: "View All Roles",
         value: "VIEW_ROLES"
@@ -40,6 +40,18 @@ async function loadMainPrompts() {
       {
         name: "View Employees by Manager",
         value: "EMPLOYEE_BY_MANAGER"
+      },
+      {
+        name: "View All Departments and Budget",
+        value: "VIEW_DEPARTMENTS"
+      },
+      {
+        name: "View All Departments",
+        value: "VIEW_DEPARTMENTS_ONLY"
+      },
+      {
+        name: "Add a New Role?",
+        value: "ADD_ROLE"
       },
       {
         name: "Add an Employee",
@@ -69,10 +81,10 @@ async function loadMainPrompts() {
         name: "Update an Employee's Manager",
         value: "UPDATE_EMPLOYEE_MANAGER"
       },
-      {
-        name: "View the Budget by Department",
-        value: "VIEW_BUDGET"
-      },
+      // {
+      //   name: "View the Budget by Department",
+      //   value: "VIEW_BUDGET"
+      // },
       {
         name: "Quit",
         value: "QUIT"
@@ -89,6 +101,10 @@ async function loadMainPrompts() {
       return viewRoles();
     case "VIEW_EMPLOYEES_DEPARTMENTS":
       return viewEmployeeByDepartments();
+    case "VIEW_DEPARTMENTS":
+      return viewDepartmentsandBudget();
+      case "VIEW_DEPARTMENTS_ONLY":
+      return viewDepartmentsOnly();
     case "EMPLOYEE_BY_MANAGER":
       return viewByManager();
     case "VIEW_BUDGET":
@@ -99,7 +115,7 @@ async function loadMainPrompts() {
     case "ADD_ROLE":
       return addRole();
     case "ADD_DEPARTMENT":
-      return addDepartments();
+      return addDepartment();
       // remove section 
     case "REMOVE_EMPLOYEE":
       return removeEmployee();
@@ -107,7 +123,7 @@ async function loadMainPrompts() {
       return removeRole();
     case "REMOVE_DEPARTMENT":
       return removeDepartment();
-      // update and view section
+      // update section
     case "UPDATE_EMPLOYEE_ROLE":
       return updateEmployeeRole();
     case "UPDATE_EMPLOYEE_MANAGER":
@@ -126,9 +142,41 @@ async function viewEmployees() {
 
   loadMainPrompts();
 }
-//Create viewEmployeesByDepartment function
+// Create viewEmployeesByManager function
+async function viewByManager() {
+  const managers = await db.findAllEmployees();
+
+  const managerChoices = managers.map(({
+    id,
+    first_name,
+    last_name
+  }) => ({
+    name: `${first_name} ${last_name}`,
+    value: id
+  }));
+
+  const {
+    managerId
+  } = await prompt([{
+    type: "list",
+    name: "managerId",
+    message: "Which manager would you like to see their employees for?",
+    choices: managerChoices
+  }]);
+  const employees = await db.findEmployeeByManager();
+
+  console.log("\n");
+
+  if (employees.length === 0) {
+    console.log("There are no employees reporting to this person")
+  } else {
+  console.table(employees);
+  }
+  loadMainPrompts();
+}
+// Create viewEmployeesByDepartment function 
 async function viewEmployeeByDepartments() {
-  const departments = await db.findAllDepartments();
+  const departments = await db.viewAllDepartments();
 
   const departmentsChoice = departments.map(({
     id,
@@ -153,7 +201,7 @@ async function viewEmployeeByDepartments() {
 
   loadMainPrompts();
 }
-//Create viewRoles function
+//Create viewRoles function 
 async function viewRoles() {
   const roles = await db.findAllRoles();
 
@@ -163,30 +211,21 @@ async function viewRoles() {
   loadMainPrompts();
 }
 
-//Create viewEmployeesByDepartment function
-async function viewEmployees() {
-  const departments = await db.findAllDepartments();
-
-  const departmentsChoice = departments.map(({
-    id,
-    name
-  }) => ({
-    name: name,
-    value: id
-  }));
-
-  const {
-    departmentsID
-  } = await prompt([{
-    type: "list",
-    name: "departmentsID",
-    message: "What department would you like to choose?",
-    choices: departmentsChoice
-  }]);
-  const employees = await db.findEmployeeByDepartments();
+async function viewDepartmentsOnly() {
+  const name = await db.viewAllDepartments();
 
   console.log("\n");
-  console.table(employees);
+  console.table(name);
+
+  loadMainPrompts();
+}
+
+//Create viewDepartments function 
+async function viewDepartmentsandBudget() {
+  const departments = await db.findAllDepartments();
+
+  console.log("\n");
+  console.table(departments);
 
   loadMainPrompts();
 }
@@ -222,13 +261,13 @@ async function removeEmployee() {
 }
 //Create removeDepartment function
 async function removeDepartment() {
-  const departments = await db.findAllDepartments();
+  const departments = await db.viewAllDepartments();
 
   const departmentChoices = departments.map(({
     id,
-    department_id,
+    name
   }) => ({
-    name: `${name}`,
+    name: name,
     value: id
   }));
 
@@ -236,7 +275,7 @@ async function removeDepartment() {
     departmentId
   } = await prompt([{
     type: "list",
-    name: "deleteDept",
+    name: "departmentId",
     message: "Which department do you want to remove?",
     choices: departmentChoices
   }]);
@@ -348,7 +387,33 @@ async function updateEmployeeManager() {
 
 
 //Create removeRole function
+async function removeRole() {
+  const roles = await db.findAllRoles();
 
+  const roleChoices = roles.map(({
+    id,
+    title
+  }) => ({
+    name: title,
+    value: id
+  }));
+
+  const {
+    roleId
+  } = await prompt([{
+    type: 'list',
+    name: 'roleId',
+    message: 'Which role do you want to delete?',
+    choices: roleChoices
+  }]);
+  await db.removeRole(roleId);
+
+  console.log("\n");
+  console.log(`Removed role from the database`);
+  console.log("\n");
+
+  loadMainPrompts();
+}
 
 
 
@@ -423,9 +488,12 @@ async function addEmployee() {
 //Create addRole function
 
 async function addRole() {
-  const departments = await db.findAllDepartments();
+  const departments = await db.viewAllDepartments();
 
-  const departmentChoices = departments.map(({ id, name }) => ({
+  const departmentChoices = departments.map(({
+    id,
+    name
+  }) => ({
     name: name,
     value: id
   }))
@@ -440,14 +508,14 @@ async function addRole() {
     },
     {
       type: "list",
-      name: "department",
+      name: "department_id",
       message: "Which department would you like to place this role?",
       choices: departmentChoices
     }
   ]);
 
   await db.createRole(role);
-  
+
   console.log(`${role.title} Has been added to the department!`)
 
   loadMainPrompts();
@@ -455,17 +523,16 @@ async function addRole() {
 //Create addDepartment function
 async function addDepartment() {
 
-  
+
   const department = await prompt([{
-      name: "department",
-      message: "What is the name of the department would you like to create?"
-    }
-  ]);
+    name: "name",
+    message: "What is the name of the department would you like to create?"
+  }]);
 
   await db.createDepartment(department);
   
   console.log(`${department.name} Department has been created!`)
-
+  
   loadMainPrompts();
 }
 

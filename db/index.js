@@ -12,26 +12,39 @@ class DB {
       "SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id LEFT JOIN employee manager on manager.id = employee.manager_id;"
     );
   }
-
+  viewAllDepartments() {
+  return this.connection.query(
+    "SELECT * FROM department"
+  );
+  }
   findAllDepartments() {
     return this.connection.query(
-      "SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id LEFT JOIN employee manager on manager.id = employee.manager_id;"
+      "SELECT department.id, department.name, SUM(role.salary) AS utilized_budget FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id GROUP BY department.id, department.name"
     );
   }
   findAllRoles() {
     return this.connection.query(
-      "SELECT employee.id, employee.first_name, employee.last_name, department.name, role.title AS role, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id LEFT JOIN employee manager on manager.id = employee.manager_id;"
+      "SELECT role.id, role.title, department.name, role.salary FROM role LEFT JOIN department on role.department_id = department.id;"
     );
   }
-
+  viewAllManagers(employeeId) {
+    return this.connection.query(
+      "SELECT * FROM employee where id != ?",
+      employeeId
+    );
+  }
 
   // Create a new employee
   createEmployee(employee) {
     return this.connection.query("INSERT INTO employee SET ?", employee);
   }
   // Create a new department
-  createDepartment(departmentId) {
-    return this.connection.query("INSERT INTO role set ?", departmentId)
+  createDepartment(department) {
+    return this.connection.query("INSERT INTO department SET ?", department)
+  }
+  //create a new role
+  createRole(role) {
+    return this.connection.query("INSERT INTO role SET ?", role)
   }
 
   // Remove an employee with the given id
@@ -44,8 +57,15 @@ class DB {
   // Remove a role from the db
   removeRole(roleId) {
     return this.connection.query(
-      "DELETE role_id FROM employee WHERE id = ?",
+      "DELETE FROM role WHERE id = ?",
       roleId
+    );
+  }
+  // Remove a department
+  removeDepartment(departmentId) {
+    return this.connection.query(
+      "DELETE FROM department WHERE id = ?",
+      departmentId
     );
   }
 
@@ -58,41 +78,28 @@ class DB {
   }
 
   // Update the given employee's Manager
-  updateEmployeeRole(employeeId, managerId) {
+  updateEmployeeManager(employeeId, managerId) {
     return this.connection.query(
       "UPDATE employee SET manager_id = ? WHERE id = ?",
       [managerId, employeeId]
     );
   }
-  // Remove a department
-  removeDepartment(departmentId) {
+
+  findEmployeeByDepartments(departmentID) {
     return this.connection.query(
-      "DELETE FROM employee WHERE department_id = ?",
-      departmentId
+      "SELECT employee.id, CONCAT(employee.first_name, ' ', employee.last_name) AS name, role.title, role.salary FROM employee LEFT JOIN role on employee.role_id = role.id WHERE role.department_id = ?",
+      departmentID
+    );
+  }
+  findEmployeeByManager(managerId) {
+    return this.connection.query(
+      "SELECT employee.id, CONCAT(employee.first_name, ' ', employee.last_name) AS name, department.name, role.title, role.salary FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id WHERE employee.manager_id = ?",
+      managerId
     );
   }
 
+  
 
-
-  // Find all employees except the given employee id
-
-
-  // Find all roles, join with departments to display the department name
-
-  // Create a new role
-
-
-
-  // Find all departments, join with employees and roles and sum up utilized department budget
-  // QUERY = "SELECT department.id, department.name, SUM(role.salary) AS utilized_budget FROM employee 
-  //LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id GROUP BY department.id, department.name;"
-
-
-
-
-
-  // Find all employees in a given department, join with roles to display role titles
-
-  // Find all employees by manager, join with departments and roles to display titles and department names
+ 
 }
 module.exports = new DB(connection);
